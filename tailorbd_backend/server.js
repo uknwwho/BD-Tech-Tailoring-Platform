@@ -10,7 +10,7 @@ import deliveryRouter from './routes/deliveryRoute.js';
 
 //App config
 const app = express();
-const port = process.env.PORT || 9146;
+const port = process.env.PORT || 5000;
 connectDB();
 connectCloudinary();
 
