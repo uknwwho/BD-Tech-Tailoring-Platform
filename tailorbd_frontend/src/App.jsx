@@ -1,21 +1,26 @@
 import React from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import CMSDashboard from './pages/CMSDashboard'
 import Home from './pages/Home'
 import Navbar from './components/Navbar'
+import AdminDashboard from './pages/AdminDashboard'
 
 const App = () => {
+  const location = useLocation();
+  // Check if current route is an admin route
+  const isAdminRoute = location.pathname.includes('CMSDashboard') || location.pathname.includes('AdminDashboard');
+
   return (
-    <div className='px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]'>
+    <div className="w-full min-h-screen">
+      {!isAdminRoute && <Navbar />}
 
-      <Navbar />
-      <Routes>
-
-        <Route path="/" element={<Home />} />
-        <Route path="/CMSDashboard" element={<CMSDashboard />} />
-
-      </Routes>
-
+      <div className={!isAdminRoute ? 'px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]' : 'w-full h-full'}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/CMSDashboard" element={<CMSDashboard />} />
+          <Route path="/AdminDashboard" element={<AdminDashboard />} />
+        </Routes>
+      </div>
     </div>
   )
 }
