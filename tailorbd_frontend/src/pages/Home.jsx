@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
     const [activeBanners, setActiveBanners] = useState([]);
@@ -8,6 +9,17 @@ const Home = () => {
     const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
     const API_URL = 'http://localhost:5000/api/cms';
+
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const token = localStorage.getItem('tailortech_token');
+        if (!token) {
+            // If no token is found in the browser, instantly kick them to the login page
+            navigate('/login');
+        }
+    }, [navigate]);
+
 
     // 1. Fetch data on mount
     useEffect(() => {

@@ -1,5 +1,6 @@
 import React from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
+import Auth from './pages/Auth';
 import CMSDashboard from './pages/CMSDashboard'
 import Home from './pages/Home'
 import Navbar from './components/Navbar'
@@ -17,6 +18,7 @@ const App = () => {
       <div className={!isAdminRoute ? 'px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]' : 'w-full h-full'}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Auth />} />
           <Route path="/CMSDashboard" element={<CMSDashboard />} />
           <Route path="/AdminDashboard" element={<AdminDashboard />} />
         </Routes>

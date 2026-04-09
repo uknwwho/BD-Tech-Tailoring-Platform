@@ -4,6 +4,7 @@ import 'dotenv/config';
 import connectDB from './config/mongodb.js';
 import connectCloudinary from './config/cloudinary.js';
 
+import authRouter from './routes/authRoute.js';
 import cmsRouter from './routes/cmsRoute.js';
 import deliveryRouter from './routes/deliveryRoute.js';
 
@@ -17,6 +18,7 @@ connectCloudinary();
 //Middlewares
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+app.use('/api/auth', authRouter);
 app.use('/api/cms', cmsRouter);
 app.use('/api/delivery', deliveryRouter);
 
