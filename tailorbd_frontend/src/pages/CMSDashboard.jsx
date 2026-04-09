@@ -29,30 +29,58 @@ const CMSDashboard = () => {
     };
 
     // BANNER HANDLERS
-    const handleImageUpload = (e) => {
+    // const handleImageUpload = (e) => {
+    //     const file = e.target.files[0];
+    //     if (!file) return;
+
+    //     const reader = new FileReader();
+    //     reader.onloadend = async () => {
+    //         const base64Image = reader.result;
+    //         try {
+    //             const res = await fetch(`${API_URL}/banners`, {
+    //                 method: 'POST',
+    //                 headers: { 'Content-Type': 'application/json' },
+    //                 body: JSON.stringify({
+    //                     title: file.name,
+    //                     image: base64Image,
+    //                     active: true
+    //                 })
+    //             });
+    //             const data = await res.json();
+    //             if (data.success) fetchData();
+    //         } catch (error) {
+    //             console.error("Upload error:", error);
+    //         }
+    //     };
+    //     reader.readAsDataURL(file);
+    // };
+
+    const handleImageUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-            const base64Image = reader.result;
-            try {
-                const res = await fetch(`${API_URL}/banners`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        title: file.name,
-                        image: base64Image,
-                        active: true
-                    })
-                });
-                const data = await res.json();
-                if (data.success) fetchData();
-            } catch (error) {
-                console.error("Upload error:", error);
+        // Create a FormData object to hold the file and text
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('title', file.name);
+        formData.append('active', true);
+
+        try {
+            const res = await fetch(`${API_URL}/banners`, {
+                method: 'POST',
+                // IMPORTANT: Do NOT set 'Content-Type': 'application/json' when sending FormData.
+                // The browser will automatically set the correct headers for file uploads.
+                body: formData
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                fetchData(); // Refresh the list
             }
-        };
-        reader.readAsDataURL(file);
+
+        } catch (error) {
+            console.error("Upload error:", error);
+        }
     };
 
     const toggleBanner = async (id, currentStatus) => {

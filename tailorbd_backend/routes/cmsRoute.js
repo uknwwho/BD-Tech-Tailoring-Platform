@@ -1,4 +1,5 @@
 import express from 'express';
+import upload from '../middleware/multer.js';
 import {
     addBanner, getBanners, toggleBannerStatus, deleteBanner,
     addPromotion, getPromotions, deletePromotion, updatePromotionStatus
@@ -7,7 +8,7 @@ import {
 const cmsRouter = express.Router();
 
 // Banner
-cmsRouter.post('/banners', addBanner);
+cmsRouter.post('/banners', upload.single('image'), addBanner);
 cmsRouter.get('/banners', getBanners);
 cmsRouter.patch('/banners/:id', toggleBannerStatus);
 cmsRouter.delete('/banners/:id', deleteBanner);

@@ -1,19 +1,34 @@
 import Banner from '../models/cmsBannerModel.js';
 import Promotion from '../models/cmsPromotionModel.js';
+import { v2 as cloudinary } from 'cloudinary';
 
 // BANNER
 
 
 // POST
+
 export const addBanner = async (req, res) => {
     try {
-        const { title, image, active } = req.body;
-        // Note: Later, when you use your config/cloudinary.js, 'image' will be the secure_url from Cloudinary
-        const newBanner = new Banner({ title, image, active });
+
+        const body = req.body || {};
+        const { title, active } = body;
+
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "Backend received the request, but Multer did not find an image."
+            });
+        }
+
+        const imageUpload = await cloudinary.uploader.upload(req.file.path, { resource_type: "image" });
+        const imageUrl = imageUpload.secure_url;
+
+        const newBanner = new Banner({ title, image: imageUrl, active });
         await newBanner.save();
+
         res.status(201).json({ success: true, message: "Banner added successfully", banner: newBanner });
     } catch (error) {
-        console.log(error);
+        console.log("Controller Error:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 };
