@@ -26,6 +26,14 @@ const Navbar = () => {
                         <p>Admin</p>
                     </NavLink>
                 )}
+
+                {/* Shows ONLY to Tailors */}
+                {user?.role === 'tailor' && (
+                    <NavLink to="/TailorShopConfig" className="text-lg font-bold text-gray-900 hover:text-indigo-600 transition">
+                        <p>Shop Config</p>
+                    </NavLink>
+                )}
+
             </div>
 
             {/* Center: Brand Logo */}

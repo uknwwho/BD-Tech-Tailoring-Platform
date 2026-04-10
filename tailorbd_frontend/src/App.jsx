@@ -5,6 +5,7 @@ import CMSDashboard from './pages/CMSDashboard'
 import Home from './pages/Home'
 import Navbar from './components/Navbar'
 import AdminDashboard from './pages/AdminDashboard'
+import TailorShopConfig from './pages/TailorShopConfig'
 
 const App = () => {
   const location = useLocation();
@@ -21,6 +22,7 @@ const App = () => {
           <Route path="/login" element={<Auth />} />
           <Route path="/CMSDashboard" element={<CMSDashboard />} />
           <Route path="/AdminDashboard" element={<AdminDashboard />} />
+          <Route path="/TailorShopConfig" element={<TailorShopConfig />} />
         </Routes>
       </div>
     </div>

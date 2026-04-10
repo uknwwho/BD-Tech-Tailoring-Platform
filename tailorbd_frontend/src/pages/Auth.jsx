@@ -39,13 +39,15 @@ const Auth = () => {
 
                     if (formData.email.includes('@admin.com')) {
                         finalUser.role = 'admin';
+                    } else if (formData.email.includes('@tailor.com')) {
+                        finalUser.role = 'tailor';
                     }
 
                     localStorage.setItem('tailortech_token', data.token);
                     localStorage.setItem('tailortech_user', JSON.stringify(finalUser));
 
                     if (finalUser.role === 'admin') navigate('/AdminDashboard');
-                    else if (finalUser.role === 'tailor') navigate('/TailorPortfolio');
+                    else if (finalUser.role === 'tailor') navigate('/TailorShopConfig');
                     else navigate('/');
                 }
             } else {

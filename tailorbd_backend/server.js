@@ -7,6 +7,7 @@ import connectCloudinary from './config/cloudinary.js';
 import authRouter from './routes/authRoute.js';
 import cmsRouter from './routes/cmsRoute.js';
 import deliveryRouter from './routes/deliveryRoute.js';
+import tailorRouter from './routes/tailorRoute.js';
 
 
 //App config
@@ -21,6 +22,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use('/api/auth', authRouter);
 app.use('/api/cms', cmsRouter);
 app.use('/api/delivery', deliveryRouter);
+app.use('/api/tailors', tailorRouter);
 
 //API endpoints
 app.get('/', (req, res) => {
