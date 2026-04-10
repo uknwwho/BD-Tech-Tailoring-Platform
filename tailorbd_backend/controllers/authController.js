@@ -1,6 +1,7 @@
 import User from '../models/userModel.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 
 // 1. REGISTER USER
 export const registerUser = async (req, res) => {
@@ -85,6 +86,50 @@ export const forgotPassword = async (req, res) => {
         console.log("=============================================\n");
 
         res.status(200).json({ success: true, message: "Password reset link sent to your email (Check VS Code Terminal!)." });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Initialize Google Client
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+export const googleAuth = async (req, res) => {
+    try {
+        const { token } = req.body; // The token sent from React
+
+        // Verify the token with Google
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+
+        const payload = ticket.getPayload();
+        const { email, name } = payload; // Google gives us their email and name
+
+        // Check if they already exist in our DB
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            // If they are new, create an account for them!
+            const salt = await bcrypt.genSalt(10);
+            const randomPassword = await bcrypt.hash(Date.now().toString(), salt);
+
+            user = new User({
+                fullName: name,
+                email,
+                password: randomPassword,
+                phone: "Google Auth - Update Required", // Because your DB requires a phone!
+                role: email.includes('@admin.com') ? 'admin' : (email.includes('@tailor.com') ? 'tailor' : 'customer')
+            });
+            await user.save();
+        }
+
+        // Generate our standard JWT Token so the app treats them like a normal user
+        const jwtToken = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+        res.status(200).json({ success: true, token: jwtToken, user: { id: user._id, name: user.fullName, role: user.role } });
     } catch (error) {
         console.log(error);
         res.status(500).json({ success: false, message: error.message });

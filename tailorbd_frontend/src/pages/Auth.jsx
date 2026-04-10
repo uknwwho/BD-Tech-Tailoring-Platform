@@ -1,3 +1,4 @@
+import { GoogleLogin } from '@react-oauth/google';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -58,6 +59,31 @@ const Auth = () => {
         }
     };
 
+    const handleGoogleSuccess = async (credentialResponse) => {
+        try {
+            const res = await fetch(`${API_URL}/google`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: credentialResponse.credential })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                // Exact same logic as your normal login!
+                localStorage.setItem('tailortech_token', data.token);
+                localStorage.setItem('tailortech_user', JSON.stringify(data.user));
+
+                if (data.user.role === 'admin') navigate('/AdminDashboard');
+                else if (data.user.role === 'tailor') navigate('/TailorShopConfig');
+                else navigate('/');
+            } else {
+                alert("Google Login Failed: " + data.message);
+            }
+        } catch (error) {
+            console.error("Google Auth Error:", error);
+        }
+    };
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
             <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
@@ -70,6 +96,26 @@ const Auth = () => {
                         {mode === 'forgot' && 'Reset your password.'}
                     </p>
                 </div>
+
+                {/* ============================== */}
+                {/* THE GOOGLE BUTTON */}
+                {/* ============================== */}
+                {mode !== 'forgot' && (
+                    <div className="mb-6 flex justify-center">
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={() => console.log('Google Login Failed')}
+                            useOneTap
+                        />
+                    </div>
+                )}
+
+                {mode !== 'forgot' && (
+                    <div className="flex items-center my-4 before:flex-1 before:border-t before:border-gray-200 after:flex-1 after:border-t after:border-gray-200">
+                        <span className="text-center text-sm text-gray-500 px-4">OR</span>
+                    </div>
+                )}
+                {/* ============================== */}
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     {mode === 'register' && (

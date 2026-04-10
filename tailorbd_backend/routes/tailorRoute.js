@@ -1,5 +1,6 @@
 import express from 'express';
-import { getTailorProfile, updateTailorProfile } from '../controllers/tailorController.js';
+
+import { getTailorProfile, updateTailorProfile, deleteTailorProfile } from '../controllers/tailorController.js';
 
 const tailorRouter = express.Router();
 

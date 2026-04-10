@@ -86,11 +86,11 @@ const Home = () => {
                                         alt={banner.title}
                                         className="w-full h-full object-cover"
                                     />
-                                    <div className="absolute inset-0 bg-black/30 flex flex-col justify-end p-8 md:p-12">
+                                    {/* <div className="absolute inset-0 bg-black/30 flex flex-col justify-end p-8 md:p-12">
                                         <h2 className="text-white text-4xl md:text-5xl font-bold drop-shadow-lg mb-2">
                                             {banner.title}
                                         </h2>
-                                    </div>
+                                    </div> */}
                                 </div>
                             ))}
                         </div>
