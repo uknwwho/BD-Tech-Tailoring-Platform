@@ -1,11 +1,15 @@
 import express from 'express';
-
-import { getTailorProfile, updateTailorProfile, deleteTailorProfile } from '../controllers/tailorController.js';
+import { getAllPublicTailors, getTailorProfile, updateTailorProfile } from '../controllers/tailorController.js';
+import { protect, tailorOnly } from '../middleware/authMiddleware.js';
+import upload from '../middleware/multer.js';
 
 const tailorRouter = express.Router();
 
-tailorRouter.get('/profile/:tailorId', getTailorProfile);
-tailorRouter.post('/profile', updateTailorProfile);
-tailorRouter.delete('/profile/:tailorId', deleteTailorProfile);
+// Tailor-only route (MUST come before /:id)
+tailorRouter.put('/profile', protect, tailorOnly, upload.single('profileImage'), updateTailorProfile);
+
+// Public routes
+tailorRouter.get('/', getAllPublicTailors);
+tailorRouter.get('/:id', getTailorProfile);
 
 export default tailorRouter;

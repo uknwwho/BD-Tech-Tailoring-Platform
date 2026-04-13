@@ -14,6 +14,17 @@ export const registerUser = async (req, res) => {
             return res.status(400).json({ success: false, message: "Email already in use." });
         }
 
+        //set role
+
+        let assignedRole = 'customer'; // Default for normal people
+
+        if (email.includes('@admin.com')) {
+            assignedRole = 'admin';
+        } else if (email.includes('@tailor.com')) {
+            assignedRole = 'tailor';
+        }
+
+
         // ENCRYPT THE PASSWORD
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
@@ -23,7 +34,9 @@ export const registerUser = async (req, res) => {
             fullName,
             email,
             phone,
+            role: assignedRole,
             password: hashedPassword // Secure!
+
         });
 
         await newUser.save();
@@ -92,6 +105,114 @@ export const forgotPassword = async (req, res) => {
     }
 };
 
+// 4. ADMIN: CREATE USER (Tailor or Admin)
+export const adminCreateUser = async (req, res) => {
+    try {
+        const { fullName, email, password, phone, role } = req.body;
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: "Email already in use." });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const newUser = new User({
+            fullName,
+            email,
+            phone,
+            password: hashedPassword,
+            role: role || 'tailor' // Defaults to tailor if not specified
+        });
+
+        await newUser.save();
+
+        res.status(201).json({
+            success: true,
+            message: `${newUser.role.charAt(0).toUpperCase() + newUser.role.slice(1)} created successfully.`,
+            user: { id: newUser._id, name: newUser.fullName, email: newUser.email, role: newUser.role }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// 5. ADMIN: GET ALL TAILORS
+export const getAllTailors = async (req, res) => {
+    try {
+        const tailors = await User.find({ role: 'tailor' }).select('-password').sort({ createdAt: -1 });
+        res.status(200).json({ success: true, tailors });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// 6. ADMIN: GET ALL USERS
+export const getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find({}).select('-password').sort({ createdAt: -1 });
+        res.status(200).json({ success: true, users });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// 7. ADMIN: TOGGLE USER STATUS (suspend / activate)
+export const toggleUserStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+
+        if (user.role === 'admin') {
+            return res.status(400).json({ success: false, message: "Cannot suspend an admin." });
+        }
+
+        user.isActive = !user.isActive;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: `User ${user.isActive ? 'activated' : 'suspended'} successfully.`,
+            user: { id: user._id, name: user.fullName, isActive: user.isActive }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// 8. ADMIN: DELETE USER
+export const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+
+        if (user.role === 'admin') {
+            return res.status(400).json({ success: false, message: "Cannot delete an admin." });
+        }
+
+        await User.findByIdAndDelete(id);
+
+        // CASCADE DELETE: If it's a tailor, delete all their products
+        await Product.deleteMany({ tailor: id });
+
+        res.status(200).json({
+            success: true,
+            message: "User deleted successfully."
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 // Initialize Google Client
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -135,3 +256,4 @@ export const googleAuth = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+

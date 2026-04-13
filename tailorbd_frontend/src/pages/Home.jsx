@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Home = () => {
     const [activeBanners, setActiveBanners] = useState([]);
     const [activePromotions, setActivePromotions] = useState([]);
+    const [featuredTailors, setFeaturedTailors] = useState([]);
+    const [latestProducts, setLatestProducts] = useState([]);
+
 
     // New state to track which banner is currently visible in the carousel
     const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+    const [loadingProducts, setLoadingProducts] = useState(true);
 
     const API_URL = 'http://localhost:5000/api/cms';
 
@@ -36,8 +40,26 @@ const Home = () => {
                 if (promoData.success) {
                     setActivePromotions(promoData.promotions.filter(p => p.status === 'Active'));
                 }
+
+                //const tailorRes = await fetch(`${API_URL}/tailors`);
+                const tailorRes = await fetch('http://localhost:5000/api/tailors');
+                const tailorData = await tailorRes.json();
+                if (tailorData.success) {
+                    setFeaturedTailors(tailorData.tailors.slice(0, 6));
+                }
+
+                //const productRes = await fetch(`${API_URL}/products?limit=10`);
+                const productRes = await fetch('http://localhost:5000/api/products?limit=10');
+                const productData = await productRes.json();
+                if (productData.success) {
+                    setLatestProducts(productData.products);
+                }
+
+
             } catch (error) {
                 console.error("Failed to load public data:", error);
+            } finally {
+                setLoadingProducts(false);
             }
         };
 
@@ -66,6 +88,17 @@ const Home = () => {
     const prevBanner = () => {
         setCurrentBannerIndex((prevIndex) => (prevIndex === 0 ? activeBanners.length - 1 : prevIndex - 1));
     };
+
+    const renderStars = (rating) => {
+        const stars = [];
+        for (let i = 1; i <= 5; i++) {
+            stars.push(
+                <span key={i} className={`${i <= Math.round(rating) ? 'text-yellow-400' : 'text-gray-300'}`}>★</span>
+            );
+        }
+        return stars;
+    };
+
 
     return (
         <div className="py-10 min-h-screen">
@@ -136,7 +169,102 @@ const Home = () => {
                 )}
             </div>
 
-            {/* 2. Active Promotions Area */}
+
+            {/* 2. Featured Tailors Section */}
+            {featuredTailors.length > 0 && (
+                <div className="mb-16">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-2xl font-bold text-gray-900">Our Expert Tailors</h2>
+                        <Link to="/tailors" className="text-indigo-600 font-medium text-sm hover:text-indigo-800 transition">
+                            View All →
+                        </Link>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                        {featuredTailors.map((tailor) => (
+                            <Link
+                                to={`/tailors/${tailor._id}`}
+                                key={tailor._id}
+                                className="group bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-lg hover:border-indigo-200 transition-all duration-300 text-center"
+                            >
+                                {tailor.profileImage ? (
+                                    <img src={tailor.profileImage} alt={tailor.fullName} className="w-16 h-16 rounded-full object-cover mx-auto mb-3 border-2 border-indigo-100 group-hover:border-indigo-300 transition" />
+                                ) : (
+                                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold mx-auto mb-3 border-2 border-indigo-100 group-hover:border-indigo-300 transition">
+                                        {tailor.fullName.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                                <h3 className="text-sm font-bold text-gray-900 truncate group-hover:text-indigo-700 transition">{tailor.fullName}</h3>
+                                <div className="flex justify-center items-center gap-0.5 mt-1 text-xs">
+                                    {renderStars(tailor.rating)}
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* 2.5 New Arrivals - Product List */}
+            <div className="mb-16">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">New Arrivals</h2>
+                </div>
+
+                {loadingProducts ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                            <div key={i} className="bg-white rounded-xl p-3 border border-gray-100 animate-pulse">
+                                <div className="h-44 bg-gray-200 rounded-lg mb-3"></div>
+                                <div className="h-3 bg-gray-200 rounded w-3/4 mb-2"></div>
+                                <div className="h-3 bg-gray-100 rounded w-1/2"></div>
+                            </div>
+                        ))}
+                    </div>
+                ) : latestProducts.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {latestProducts.map((product) => (
+                            <Link
+                                to={`/product/${product._id}`}
+                                key={product._id}
+                                className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col"
+                            >
+                                <div className="h-44 bg-gray-50 flex items-center justify-center p-2 relative overflow-hidden">
+                                    {product.images && product.images.length > 0 ? (
+                                        <img
+                                            src={product.images[0]}
+                                            alt={product.name}
+                                            className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500"
+                                        />
+                                    ) : (
+                                        <div className="text-gray-400 text-xs">No Image</div>
+                                    )}
+                                    <div className="absolute top-2 left-2">
+                                        <span className="text-[10px] font-bold text-indigo-600 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm">
+                                            {product.category.includes(': ') ? product.category.split(': ')[1] : product.category}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="p-3">
+                                    <h3 className="font-bold text-gray-900 text-xs truncate mb-1">{product.name}</h3>
+                                    <p className="text-[10px] text-gray-500 mb-2 truncate">By {product.tailor?.fullName || 'Tailor'}</p>
+                                    <div className="flex justify-between items-center mt-auto">
+                                        <p className="text-sm font-black text-indigo-600">৳{product.price}</p>
+                                        <span className="text-[10px] font-bold text-indigo-600 group-hover:underline">
+                                            Details
+                                        </span>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                        <p className="text-gray-500 text-sm font-medium">No products listed yet.</p>
+                    </div>
+                )}
+            </div>
+
+
+            {/* 3. Active Promotions Area */}
             {activePromotions.length > 0 && (
                 <div className="mb-16">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">Current Offers</h2>

@@ -48,7 +48,7 @@ const Auth = () => {
                     localStorage.setItem('tailortech_user', JSON.stringify(finalUser));
 
                     if (finalUser.role === 'admin') navigate('/AdminDashboard');
-                    else if (finalUser.role === 'tailor') navigate('/TailorShopConfig');
+                    else if (finalUser.role === 'tailor') navigate('/TailorDashboard'); //changed from shop config
                     else navigate('/');
                 }
             } else {
