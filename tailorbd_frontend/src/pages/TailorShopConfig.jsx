@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 
 const TailorShopConfig = () => {
     const user = JSON.parse(localStorage.getItem('tailortech_user'));
-    const API_URL = 'http://localhost:5000/api/tailors';
+    // const API_URL = 'http://localhost:5000/api/tailors';
+    const API_URL = import.meta.env.VITE_API_URL;
 
     // State to track if we are in Edit Mode or View Mode
     const [isEditing, setIsEditing] = useState(true);
@@ -23,7 +24,7 @@ const TailorShopConfig = () => {
 
         const fetchProfile = async () => {
             try {
-                const res = await fetch(`${API_URL}/profile/${user.id}`);
+                const res = await fetch(`${API_URL}/tailor-config/profile/${user.id}`);
                 const data = await res.json();
 
                 if (data.success && data.profile) {
@@ -81,7 +82,7 @@ const TailorShopConfig = () => {
         };
 
         try {
-            const res = await fetch(`${API_URL}/profile`, {
+            const res = await fetch(`${API_URL}/tailor-config/profile`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -106,7 +107,7 @@ const TailorShopConfig = () => {
         if (!window.confirm("Are you absolutely sure you want to delete your entire shop profile? This cannot be undone.")) return;
 
         try {
-            const res = await fetch(`${API_URL}/profile/${user.id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_URL}/tailor-config/profile/${user.id}`, { method: 'DELETE' });
             const data = await res.json();
 
             if (data.success) {
