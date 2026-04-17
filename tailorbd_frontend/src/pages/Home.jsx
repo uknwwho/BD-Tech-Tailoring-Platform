@@ -31,13 +31,13 @@ const Home = () => {
     useEffect(() => {
         const fetchPublicData = async () => {
             try {
-                const bannerRes = await fetch(`${API_URL}/banners`);
+                const bannerRes = await fetch(`${API_URL}/cms/banners`);
                 const bannerData = await bannerRes.json();
                 if (bannerData.success) {
                     setActiveBanners(bannerData.banners.filter(b => b.active));
                 }
 
-                const promoRes = await fetch(`${API_URL}/promotions`);
+                const promoRes = await fetch(`${API_URL}/cms/promotions`);
                 const promoData = await promoRes.json();
                 if (promoData.success) {
                     setActivePromotions(promoData.promotions.filter(p => p.status === 'Active'));
