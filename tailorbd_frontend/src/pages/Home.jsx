@@ -12,7 +12,9 @@ const Home = () => {
     const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
     const [loadingProducts, setLoadingProducts] = useState(true);
 
-    const API_URL = 'http://localhost:5000/api/cms';
+    // const API_URL = 'http://localhost:5000/api/cms';
+    const API_URL = import.meta.env.VITE_API_URL;
+
 
     const navigate = useNavigate();
 
@@ -42,14 +44,16 @@ const Home = () => {
                 }
 
                 //const tailorRes = await fetch(`${API_URL}/tailors`);
-                const tailorRes = await fetch('http://localhost:5000/api/tailors');
+                // const tailorRes = await fetch('http://localhost:5000/api/tailors');
+                const tailorRes = await fetch(`${API_URL}/tailors`);
                 const tailorData = await tailorRes.json();
                 if (tailorData.success) {
                     setFeaturedTailors(tailorData.tailors.slice(0, 6));
                 }
 
                 //const productRes = await fetch(`${API_URL}/products?limit=10`);
-                const productRes = await fetch('http://localhost:5000/api/products?limit=10');
+                // const productRes = await fetch('http://localhost:5000/api/products?limit=10');
+                const productRes = await fetch(`${API_URL}/products?limit=10`);
                 const productData = await productRes.json();
                 if (productData.success) {
                     setLatestProducts(productData.products);

@@ -7,7 +7,8 @@ const Auth = () => {
     const [formData, setFormData] = useState({ fullName: '', email: '', password: '', phone: '' });
     const navigate = useNavigate();
 
-    const API_URL = 'http://localhost:5000/api/auth';
+    // const API_URL = 'http://localhost:5000/api/auth';
+    const API_URL = `${import.meta.env.VITE_API_URL}/auth`;
 
     const handleInputChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
