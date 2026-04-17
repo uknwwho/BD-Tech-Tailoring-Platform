@@ -15,6 +15,7 @@ const AdminDelivery = () => {
     const [formData, setFormData] = useState({
         orderId: '',
         customerName: '',
+        customerEmail: '',
         deliveryAddress: '',
         deliveryPartner: 'Pathao',
         trackingNumber: '',

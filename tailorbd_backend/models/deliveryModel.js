@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const deliverySchema = new mongoose.Schema({
     orderId: { type: String, required: true },
     customerName: { type: String, required: true },
+    customerEmail: { type: String, required: true },
     deliveryAddress: { type: String, required: true },
     deliveryPartner: { type: String, default: 'Unassigned' },
     status: {

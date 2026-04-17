@@ -1,4 +1,6 @@
 import Delivery from '../models/deliveryModel.js';
+import { sendEmailAlert } from '../utils/sendEmail.js';
+import Order from '../models/orderModel.js';
 
 // POST
 // export const createDelivery = async (req, res) => {
@@ -20,15 +22,33 @@ import Delivery from '../models/deliveryModel.js';
 export const createDelivery = async (req, res) => {
     try {
         const { orderId, customerName, deliveryAddress, trackingNumber, estimatedDeliveryDate, deliveryPartner } = req.body;
+        let autoEmail = "no-email@found.com";
+
+        try {
+            const allOrders = await Order.find().populate('customer');
+
+            const matchedOrder = allOrders.find(order => {
+                const realId = order._id.toString();
+                const prettyId = "#" + realId.slice(-8).toUpperCase();
+                return realId === orderId || prettyId === orderId || realId.slice(-8).toUpperCase() === orderId;
+            });
+
+            if (matchedOrder && matchedOrder.customer && matchedOrder.customer.email) {
+                autoEmail = matchedOrder.customer.email;
+            }
+        } catch (err) {
+            console.log("Could not find order to pull email. Error:", err.message);
+        }
 
         const newDelivery = new Delivery({
             orderId,
             customerName,
+            customerEmail: autoEmail,
             deliveryAddress,
             trackingNumber,
             estimatedDeliveryDate,
-            deliveryPartner, // Save the partner
-            historyLog: [{ status: 'Pending' }] // Start the history log!
+            deliveryPartner,
+            historyLog: [{ status: 'Pending' }]
         });
 
         await newDelivery.save();
@@ -83,6 +103,21 @@ export const updateDeliveryStatus = async (req, res) => {
             },
             { returnDocument: 'after' }
         );
+        // Email Alart
+
+        if (updatedDelivery && updatedDelivery.customerEmail) {
+            let emailSubject = `Update on your TailorTech Order: ${updatedDelivery.orderId}`;
+            let emailMessage = `Hello ${updatedDelivery.customerName}, the status of your delivery has been updated to: **${status}**.`;
+
+            if (status === 'Out for Delivery') {
+                emailMessage = `Great news ${updatedDelivery.customerName}! Your order (${updatedDelivery.orderId}) is out for delivery via ${updatedDelivery.deliveryPartner}. Have your phone ready!`;
+            } else if (status === 'Delivered') {
+                emailMessage = `Success! Your order (${updatedDelivery.orderId}) has been successfully delivered. Thank you for choosing TailorTech!`;
+            }
+
+            await sendEmailAlert(updatedDelivery.customerEmail, emailSubject, emailMessage);
+        }
+
         res.status(200).json({ success: true, message: "Delivery status updated", delivery: updatedDelivery });
     } catch (error) {
         console.log(error);
