@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
 
 const TailorDashboard = () => {
@@ -46,6 +47,12 @@ const TailorDashboard = () => {
                         <h1 className="text-3xl font-bold text-gray-900">Tailor Dashboard</h1>
                         <p className="text-sm text-gray-500 mt-1">Overview of your tailoring workstation.</p>
                     </div>
+                    <Link
+                        to="/TailorShopConfig"
+                        className="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 shadow-md transition flex items-center gap-2"
+                    >
+                        ⚙️ My Shop Config
+                    </Link>
                 </header>
 
                 {/* Stats Cards */}

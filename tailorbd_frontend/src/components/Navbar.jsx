@@ -165,12 +165,11 @@ const Navbar = () => {
                     </NavLink>
                 )}
 
-                {/* Shows ONLY to Tailors */}
-                {user?.role === 'tailor' && (
+                {/* {user?.role === 'tailor' && (
                     <NavLink to="/TailorShopConfig" className="text-lg font-bold text-gray-900 hover:text-indigo-600 transition">
                         <p> My Shop Config</p>
                     </NavLink>
-                )}
+                )} */}
 
                 {user?.role === 'tailor' && (
                     <NavLink to="/TailorDashboard" className="text-sm font-bold text-gray-900 hover:text-indigo-600 transition">
