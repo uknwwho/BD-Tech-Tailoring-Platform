@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import AddressMapPicker from '../components/AddressMapPicker';
 
 const TailorShopConfig = () => {
     const user = JSON.parse(localStorage.getItem('tailortech_user'));
-    // const API_URL = 'http://localhost:5000/api/tailors';
     const API_URL = import.meta.env.VITE_API_URL;
 
     // State to track if we are in Edit Mode or View Mode
@@ -15,7 +15,7 @@ const TailorShopConfig = () => {
     const [shopData, setShopData] = useState({
         shopName: '',
         description: '',
-        serviceAreas: '',
+        serviceAreas: [], // Now an array of { name, lat, lng } objects
         pricing: []
     });
 
@@ -28,10 +28,21 @@ const TailorShopConfig = () => {
                 const data = await res.json();
 
                 if (data.success && data.profile) {
+                    // Auto-migrate: if serviceAreas contains plain strings, convert them
+                    let areas = data.profile.serviceAreas || [];
+                    if (areas.length > 0 && typeof areas[0] === 'string') {
+                        // Legacy format — convert strings to objects with default coords
+                        areas = areas.map((name, idx) => ({
+                            name: name,
+                            lat: 23.8103 + (idx * 0.01),
+                            lng: 90.4125 + (idx * 0.01)
+                        }));
+                    }
+
                     const fetchedData = {
                         shopName: data.profile.shopName || '',
                         description: data.profile.description || '',
-                        serviceAreas: data.profile.serviceAreas ? data.profile.serviceAreas.join(', ') : '',
+                        serviceAreas: areas,
                         pricing: data.profile.pricing || []
                     };
 
@@ -63,6 +74,11 @@ const TailorShopConfig = () => {
         setShopData({ ...shopData, pricing: newPricing });
     };
 
+    // SERVICE AREAS MAP HANDLER
+    const handleServiceAreasChange = (areas) => {
+        setShopData({ ...shopData, serviceAreas: areas });
+    };
+
     // FORM ACTION HANDLERS
     const handleCancel = () => {
         setShopData(originalData); // Restore the backup!
@@ -71,13 +87,12 @@ const TailorShopConfig = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const areasArray = shopData.serviceAreas.split(',').map(area => area.trim()).filter(a => a);
 
         const payload = {
             tailorId: user.id,
             shopName: shopData.shopName,
             description: shopData.description,
-            serviceAreas: areasArray,
+            serviceAreas: shopData.serviceAreas, // Already structured as [{ name, lat, lng }]
             pricing: shopData.pricing
         };
 
@@ -112,7 +127,7 @@ const TailorShopConfig = () => {
 
             if (data.success) {
                 // Wipe everything clean
-                setShopData({ shopName: '', description: '', serviceAreas: '', pricing: [] });
+                setShopData({ shopName: '', description: '', serviceAreas: [], pricing: [] });
                 setOriginalData(null);
                 setHasProfile(false);
                 setIsEditing(true);
@@ -176,17 +191,24 @@ const TailorShopConfig = () => {
                                 className={inputClass}
                             ></textarea>
                         </div>
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1">Service Areas (Comma separated)</label>
-                            <input
-                                type="text" disabled={!isEditing}
-                                value={shopData.serviceAreas}
-                                onChange={(e) => setShopData({ ...shopData, serviceAreas: e.target.value })}
-                                placeholder={isEditing ? "e.g. Dhanmondi, Gulshan, Banani" : ""}
-                                className={inputClass}
-                            />
-                        </div>
                     </div>
+                </section>
+
+                {/* SERVICE AREAS — Map-based picker */}
+                <section>
+                    <h2 className="text-xl font-semibold text-indigo-600 mb-4 border-b pb-2">Service Areas</h2>
+                    <p className="text-sm text-gray-400 mb-4">
+                        {isEditing
+                            ? '📍 Click on the map or search to add your service areas. Each pin marks an area you serve.'
+                            : '📍 Your current service areas are shown below.'
+                        }
+                    </p>
+                    <AddressMapPicker
+                        mode="multi"
+                        disabled={!isEditing}
+                        selectedAreas={shopData.serviceAreas}
+                        onServiceAreasChange={handleServiceAreasChange}
+                    />
                 </section>
 
                 {/* DYNAMIC PRICING */}
@@ -275,208 +297,3 @@ const TailorShopConfig = () => {
 };
 
 export default TailorShopConfig;
-
-
-
-
-
-// import React, { useState, useEffect } from 'react';
-
-// const TailorShopConfig = () => {
-//     // Get the logged-in tailor's info from local storage
-//     const user = JSON.parse(localStorage.getItem('tailortech_user'));
-
-//     const [shopData, setShopData] = useState({
-//         shopName: '',
-//         description: '',
-//         serviceAreas: '', // We'll handle this as a comma-separated string for easy typing
-//         pricing: []
-//     });
-
-//     const API_URL = 'http://localhost:5000/api/tailors';
-
-//     // Fetch existing profile on mount
-//     useEffect(() => {
-//         if (!user) return;
-
-//         const fetchProfile = async () => {
-//             try {
-//                 const res = await fetch(`${API_URL}/profile/${user.id}`);
-//                 const data = await res.json();
-//                 if (data.success && data.profile) {
-//                     setShopData({
-//                         shopName: data.profile.shopName || '',
-//                         description: data.profile.description || '',
-//                         // Convert array back to comma-separated string for the input field
-//                         serviceAreas: data.profile.serviceAreas ? data.profile.serviceAreas.join(', ') : '',
-//                         pricing: data.profile.pricing || []
-//                     });
-//                 }
-//             } catch (error) {
-//                 console.error("Error fetching profile:", error);
-//             }
-//         };
-//         fetchProfile();
-//     }, [user]);
-
-//     // DYNAMIC PRICING HANDLERS
-//     const addPricingRow = () => {
-//         setShopData({
-//             ...shopData,
-//             pricing: [...shopData.pricing, { category: '', basePrice: '', turnaroundTime: '' }]
-//         });
-//     };
-
-//     const removePricingRow = (indexToRemove) => {
-//         const newPricing = shopData.pricing.filter((_, index) => index !== indexToRemove);
-//         setShopData({ ...shopData, pricing: newPricing });
-//     };
-
-//     const handlePricingChange = (index, field, value) => {
-//         const newPricing = [...shopData.pricing];
-//         newPricing[index][field] = value;
-//         setShopData({ ...shopData, pricing: newPricing });
-//     };
-
-//     // FORM SUBMIT
-//     const handleSubmit = async (e) => {
-//         e.preventDefault();
-
-//         // Clean up the service areas into a proper array
-//         const areasArray = shopData.serviceAreas.split(',').map(area => area.trim()).filter(a => a);
-
-//         const payload = {
-//             tailorId: user.id, // Tie it to this exact user!
-//             shopName: shopData.shopName,
-//             description: shopData.description,
-//             serviceAreas: areasArray,
-//             pricing: shopData.pricing
-//         };
-
-//         try {
-//             const res = await fetch(`${API_URL}/profile`, {
-//                 method: 'POST',
-//                 headers: { 'Content-Type': 'application/json' },
-//                 body: JSON.stringify(payload)
-//             });
-//             const data = await res.json();
-//             if (data.success) {
-//                 alert("Shop configuration saved successfully!");
-//             } else {
-//                 alert("Failed to save: " + data.message);
-//             }
-//         } catch (error) {
-//             console.error("Save error:", error);
-//             alert("Failed to connect to backend! Check your Browser Console.");
-//         }
-//     };
-
-//     if (!user) return <div className="p-10 text-center">Please log in first.</div>;
-
-//     return (
-//         <div className="max-w-4xl mx-auto py-10 px-4">
-//             <h1 className="text-3xl font-bold text-gray-900 mb-2">Shop Configuration</h1>
-//             <p className="text-gray-500 mb-8">Manage your shop details, service areas, and dynamic pricing.</p>
-
-//             <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 space-y-8">
-
-//                 {/* BASIC INFO */}
-//                 <section>
-//                     <h2 className="text-xl font-semibold text-indigo-600 mb-4 border-b pb-2">Basic Information</h2>
-//                     <div className="grid grid-cols-1 gap-6">
-//                         <div>
-//                             <label className="block text-sm font-medium text-gray-700 mb-1">Shop Name</label>
-//                             <input
-//                                 type="text" required
-//                                 value={shopData.shopName}
-//                                 onChange={(e) => setShopData({ ...shopData, shopName: e.target.value })}
-//                                 className="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-indigo-500"
-//                             />
-//                         </div>
-//                         <div>
-//                             <label className="block text-sm font-medium text-gray-700 mb-1">Shop Description</label>
-//                             <textarea
-//                                 rows="3"
-//                                 value={shopData.description}
-//                                 onChange={(e) => setShopData({ ...shopData, description: e.target.value })}
-//                                 className="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-indigo-500"
-//                             ></textarea>
-//                         </div>
-//                         <div>
-//                             <label className="block text-sm font-medium text-gray-700 mb-1">Service Areas (Comma separated)</label>
-//                             <input
-//                                 type="text"
-//                                 value={shopData.serviceAreas}
-//                                 onChange={(e) => setShopData({ ...shopData, serviceAreas: e.target.value })}
-//                                 placeholder="e.g. Dhanmondi, Gulshan, Banani"
-//                                 className="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-indigo-500"
-//                             />
-//                         </div>
-//                     </div>
-//                 </section>
-
-//                 {/* DYNAMIC PRICING */}
-//                 <section>
-//                     <div className="flex justify-between items-center mb-4 border-b pb-2">
-//                         <h2 className="text-xl font-semibold text-indigo-600">Dynamic Pricing</h2>
-//                         <button type="button" onClick={addPricingRow} className="text-sm bg-indigo-50 text-indigo-600 font-bold px-3 py-1.5 rounded-lg hover:bg-indigo-100">+ Add Category</button>
-//                     </div>
-
-//                     {shopData.pricing.length === 0 && (
-//                         <p className="text-gray-400 text-sm italic">No pricing categories added yet.</p>
-//                     )}
-
-//                     <div className="space-y-4">
-//                         {shopData.pricing.map((item, index) => (
-//                             <div key={index} className="flex flex-wrap md:flex-nowrap gap-4 items-end bg-gray-50 p-4 rounded-xl border border-gray-200">
-//                                 <div className="flex-1 min-w-[150px]">
-//                                     <label className="block text-xs font-medium text-gray-500 mb-1">Dress Category</label>
-//                                     <input
-//                                         type="text" required placeholder="e.g. Suit"
-//                                         value={item.category}
-//                                         onChange={(e) => handlePricingChange(index, 'category', e.target.value)}
-//                                         className="w-full border border-gray-300 rounded p-2 outline-none focus:border-indigo-500"
-//                                     />
-//                                 </div>
-//                                 <div className="w-full md:w-32">
-//                                     <label className="block text-xs font-medium text-gray-500 mb-1">Base Price (৳)</label>
-//                                     <input
-//                                         type="number" required placeholder="2500"
-//                                         value={item.basePrice}
-//                                         onChange={(e) => handlePricingChange(index, 'basePrice', e.target.value)}
-//                                         className="w-full border border-gray-300 rounded p-2 outline-none focus:border-indigo-500"
-//                                     />
-//                                 </div>
-//                                 <div className="flex-1 min-w-[120px]">
-//                                     <label className="block text-xs font-medium text-gray-500 mb-1">Turnaround Time</label>
-//                                     <input
-//                                         type="text" required placeholder="e.g. 7-10 Days"
-//                                         value={item.turnaroundTime}
-//                                         onChange={(e) => handlePricingChange(index, 'turnaroundTime', e.target.value)}
-//                                         className="w-full border border-gray-300 rounded p-2 outline-none focus:border-indigo-500"
-//                                     />
-//                                 </div>
-//                                 <button
-//                                     type="button"
-//                                     onClick={() => removePricingRow(index)}
-//                                     className="text-red-500 hover:text-red-700 font-bold p-2 mb-0.5"
-//                                 >
-//                                     X
-//                                 </button>
-//                             </div>
-//                         ))}
-//                     </div>
-//                 </section>
-
-//                 <div className="pt-4">
-//                     <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition shadow-md">
-//                         Save Shop Configuration
-//                     </button>
-//                 </div>
-
-//             </form>
-//         </div>
-//     );
-// };
-
-// export default TailorShopConfig;

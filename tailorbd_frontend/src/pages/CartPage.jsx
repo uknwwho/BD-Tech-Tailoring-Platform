@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import AddressMapPicker from '../components/AddressMapPicker';
 
 const CartPage = () => {
     const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
@@ -12,11 +13,27 @@ const CartPage = () => {
         phone: '',
         city: '',
         address: '',
+        lat: null,
+        lng: null,
         notes: ''
     });
 
     const API_URL = import.meta.env.VITE_API_URL;
     const token = localStorage.getItem('tailortech_token');
+
+    // Handle map address selection
+    const handleAddressSelect = (addressInfo) => {
+        const city = addressInfo.address?.city || addressInfo.address?.division || '';
+        const fullAddress = addressInfo.displayName || '';
+
+        setShippingDetails(prev => ({
+            ...prev,
+            city: city,
+            address: fullAddress,
+            lat: addressInfo.lat,
+            lng: addressInfo.lng
+        }));
+    };
 
     const handleCheckout = async (e) => {
         e.preventDefault();
@@ -28,6 +45,11 @@ const CartPage = () => {
 
         if (cartItems.length === 0) {
             toast.error("Your cart is empty");
+            return;
+        }
+
+        if (!shippingDetails.address) {
+            toast.error("Please select a delivery address from the map");
             return;
         }
 
@@ -45,7 +67,9 @@ const CartPage = () => {
                     fullName: shippingDetails.fullName,
                     phone: shippingDetails.phone,
                     city: shippingDetails.city,
-                    address: shippingDetails.address
+                    address: shippingDetails.address,
+                    lat: shippingDetails.lat,
+                    lng: shippingDetails.lng
                 },
                 notes: shippingDetails.notes,
                 totalAmount: getCartTotal()
@@ -162,16 +186,27 @@ const CartPage = () => {
                                 className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm font-medium focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
                                 onChange={(e) => setShippingDetails({...shippingDetails, phone: e.target.value})}
                             />
-                            <input 
-                                type="text" required placeholder="City" 
-                                className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm font-medium focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
-                                onChange={(e) => setShippingDetails({...shippingDetails, city: e.target.value})}
-                            />
-                            <textarea 
-                                required placeholder="Complete Address" rows="3"
-                                className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm font-medium focus:ring-4 focus:ring-indigo-50 outline-none transition-all resize-none"
-                                onChange={(e) => setShippingDetails({...shippingDetails, address: e.target.value})}
-                            ></textarea>
+
+                            {/* Map-based address picker */}
+                            <div>
+                                <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest pt-2 pb-3">Delivery Address</h3>
+                                <AddressMapPicker
+                                    mode="single"
+                                    onAddressSelect={handleAddressSelect}
+                                />
+                            </div>
+
+                            {/* Show selected address as confirmation */}
+                            {shippingDetails.address && (
+                                <div className="bg-green-50 border border-green-100 rounded-2xl p-4">
+                                    <p className="text-xs font-bold text-green-600 uppercase tracking-widest mb-1">✓ Address Selected</p>
+                                    <p className="text-sm font-semibold text-gray-700">{shippingDetails.address}</p>
+                                    {shippingDetails.city && (
+                                        <p className="text-xs text-gray-400 mt-1">City: {shippingDetails.city}</p>
+                                    )}
+                                </div>
+                            )}
+
                             <textarea 
                                 placeholder="Order Notes (Optional / Measurements)" rows="3"
                                 className="w-full bg-gray-100/50 border-none rounded-2xl p-4 text-sm font-medium outline-none resize-none"

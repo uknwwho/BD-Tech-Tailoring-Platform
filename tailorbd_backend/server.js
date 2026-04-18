@@ -13,6 +13,8 @@ import productRouter from './routes/productRoute.js';
 import complaintRouter from './routes/complaintRoute.js';
 import tailorRouter from './routes/tailorRoute.js';
 import orderRouter from './routes/orderRoute.js';
+import addressRouter from './routes/addressRoute.js';
+import reviewRouter from './routes/reviewRoute.js';
 
 //App config
 const app = express();
@@ -31,6 +33,8 @@ app.use('/api/products', productRouter);
 app.use('/api/complaints', complaintRouter);
 app.use('/api/tailors', tailorRouter);
 app.use('/api/orders', orderRouter);
+app.use('/api/address', addressRouter);
+app.use('/api/reviews', reviewRouter);
 
 //API endpoints
 app.get('/', (req, res) => {

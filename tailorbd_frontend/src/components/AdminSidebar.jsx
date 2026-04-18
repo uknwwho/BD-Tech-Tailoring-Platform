@@ -98,6 +98,7 @@ const AdminSidebar = () => {
                         <Link to="/AdminProducts" className={linkClass('/AdminProducts')}>Product Management</Link>
                         <Link to="/AdminOrders" className={linkClass('/AdminOrders')}>Manage Orders</Link>
                         <Link to="/AdminComplaints" className={linkClass('/AdminComplaints')}>Complaints</Link>
+                        <Link to="/AdminReviews" className={linkClass('/AdminReviews')}>Reviews</Link>
                         <Link to="/AdminDelivery" className={linkClass('/AdminDelivery')}>Deliveries</Link>
                         <Link to="/CMSDashboard" className={linkClass('/CMSDashboard')}>CMS & Banners</Link>
                         <Link to="/" className={linkClass('/')}>Visit Website</Link>
