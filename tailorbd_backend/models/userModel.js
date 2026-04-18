@@ -30,7 +30,9 @@ const userSchema = new mongoose.Schema({
         street: String,
         city: String,
         division: String,
-        postalCode: String
+        postalCode: String,
+        lat: Number,
+        lng: Number
     },
     role: { type: String, enum: ['customer', 'tailor', 'admin'], default: 'customer' },
     measurementProfiles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Measurement' }],

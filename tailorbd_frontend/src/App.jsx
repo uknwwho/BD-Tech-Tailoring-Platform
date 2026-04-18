@@ -23,6 +23,7 @@ import AdminOrders from './pages/AdminOrders';
 import AdminProducts from './pages/AdminProducts';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import AdminDelivery from './pages/AdminDelivery';
+import AdminReviews from './pages/AdminReviews';
 
 const App = () => {
   const location = useLocation();
@@ -37,6 +38,7 @@ const App = () => {
     location.pathname.includes('AdminComplaints') ||
     location.pathname.includes('AdminOrders') ||
     location.pathname.includes('AdminDelivery') ||
+    location.pathname.includes('AdminReviews') ||
     location.pathname.includes('TailorDashboard') ||
     location.pathname.includes('TailorProducts') ||
     location.pathname.includes('TailorComplaints') ||
@@ -125,6 +127,11 @@ const App = () => {
           <Route path="/AdminDelivery" element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminDelivery />
+            </ProtectedRoute>
+          } />
+          <Route path="/AdminReviews" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminReviews />
             </ProtectedRoute>
           } />
 

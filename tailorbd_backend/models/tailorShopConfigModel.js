@@ -7,8 +7,12 @@ const tailorProfileSchema = new mongoose.Schema({
     shopName: { type: String, required: true },
     description: { type: String },
 
-    // Array of strings (e.g., ["Dhaka", "Chittagong", "Sylhet"])
-    serviceAreas: [{ type: String }],
+    // Structured service areas with coordinates for map-based validation
+    serviceAreas: [{
+        name: { type: String, required: true },
+        lat: { type: Number, required: true },
+        lng: { type: Number, required: true }
+    }],
 
     // Dynamic Pricing Array
     pricing: [{
